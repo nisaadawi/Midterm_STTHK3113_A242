@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:flutter_dht11_apps/models/threshold.dart';
+import 'package:flutter_dht11_apps/views/dht_history_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,16 +23,15 @@ class _HomePageState extends State<HomePage> {
   String relayStatus = "Off";
   Timer? _timer;
   List<Dashboard> dashboards = [];
-  double tempThreshold = 28.0;
-  double humThreshold = 75.0;
+  double tempThreshold = 0;
+  double humThreshold = 0.0;
 
-   bool relayOn = true;
 
   // Function to update thresholds in the database
   Future<void> updateThresholds(double temp, double hum) async {
     try {
       final response = await http.post(
-        Uri.parse('${MyConfig.servername}/DHT11/update_threshold.php'), // Replace with your PHP script URL
+        Uri.parse('${MyConfig.servername}/DHT11/update_threshold.php'),
         body: {
           'temp_treshold': temp.toString(),
           'hum_treshold': hum.toString(),
@@ -41,15 +41,116 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         if (jsonResponse['status'] == 'success') {
-          print('Thresholds updated successfully');
+          // Show success popup
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Thresholds updated successfully!',
+                      style: GoogleFonts.righteous(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.all(10),
+              ),
+            );
+          }
         } else {
-          print('Threshold update failed: ${jsonResponse['message']}');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.error, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Update failed: ${jsonResponse['message']}',
+                      style: GoogleFonts.righteous(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.all(10),
+              ),
+            );
+          }
         }
       } else {
-        print('Server error during update: ${response.statusCode}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Server error: ${response.statusCode}',
+                    style: GoogleFonts.righteous(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              margin: const EdgeInsets.all(10),
+            ),
+          );
+        }
       }
     } catch (e) {
-      print('Update error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  'Error: $e',
+                  style: GoogleFonts.righteous(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(10),
+          ),
+        );
+      }
     }
   }
 
@@ -183,14 +284,13 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           'DHT11 DASHBOARD',
           style: GoogleFonts.righteous(
-            fontSize: 32,
+            fontSize:28 ,
             fontWeight: FontWeight.bold,
             color: Colors.white,
             letterSpacing: 1.5,
           ),      
         ),
         centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 0, 150, 136),
         elevation: 10,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -207,6 +307,18 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         toolbarHeight: 100,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history, color: Colors.white, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DHTHistoryScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body:  SingleChildScrollView(
         child: Container(
@@ -235,18 +347,35 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  // Row(
-                  //   children: [
-                  //     const Text('Relay Status', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                  //     const SizedBox(width: 8),
-                  //     Switch(
-                  //       value: relayOn,
-                  //       activeColor: const Color(0xFFFFD600),
-                  //       onChanged: (val) => setState(() => relayOn = val),
-                  //     ),
-                  //     Text(relayOn ? 'ON' : 'OFF', style: TextStyle(color: relayOn ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                  //   ],
-                  // ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 8, 8, 0),
+                    child: Card(
+                      color: relayStatus == 'On' ? const Color.fromARGB(255, 8, 168, 40) : Colors.red,
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Relay Status',
+                              style: GoogleFonts.righteous(
+                                fontSize: 12, 
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              relayStatus,
+                              style: GoogleFonts.righteous(
+                                fontSize: 14, 
+                                fontWeight: FontWeight.bold, 
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -272,6 +401,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
               const SizedBox(height: 8),
+             
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Text(dashboards.isNotEmpty ? 'Last Updated: ${dashboards.first.timestamp}' : 'No Data Available',
@@ -304,28 +434,42 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Row(
                             children: [
-                              Text('Temp ', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white)),
+                              Text('Temperature ', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                               Text('${tempThreshold.toInt()}°C', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 26, color: Colors.deepOrange)),
                               const SizedBox(width: 16),
-                              Text('Hum ', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white)),
+                              Text('Humidity ', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                               Text('${humThreshold.toInt()}%', style: GoogleFonts.righteous(fontWeight: FontWeight.bold, fontSize: 26, color: Colors.blue)),
                               const Spacer(),
                             ],
                           ),
-                          Text('Status Message', style: GoogleFonts.montserrat(fontSize: 20, color: Colors.black54)),
-                          const Text('ABC 123 FETCH LATER', style: TextStyle(fontSize: 14, color: Colors.black87)),
+                          Text('Status Message', style: GoogleFonts.montserrat(fontSize: 12, color: Colors.black54)),
+                          Text(
+                            temperature > tempThreshold && humidity > humThreshold
+                                ? 'Temperature and Humidity Exceeding!'
+                                : temperature > tempThreshold
+                                    ? 'Temperature Exceeding!'
+                                    : humidity > humThreshold
+                                        ? 'Humidity Exceeding!'
+                                        : 'Normal Temperature and Humidity',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: temperature > tempThreshold || humidity > humThreshold
+                                  ? Colors.red
+                                  : Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               const Spacer(),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 255, 255, 255)),
                                 onPressed: _showThresholdDialog,
-                                child: Text('Set Threshold', style: GoogleFonts.montserrat(color: const Color.fromARGB(255, 230, 169, 26), fontWeight: FontWeight.bold, fontSize: 16)),
+                                child: Text('Set Threshold', style: GoogleFonts.montserrat(color: const Color.fromARGB(255, 230, 169, 26), fontWeight: FontWeight.bold, fontSize: 14)),
                               ),
-                              const SizedBox(width: 16), // Relay Status Card
                             ],
                           )
-                          // Removed Status Message section
                         ],
                       ),
                     ),
@@ -813,7 +957,7 @@ class _MeterWidget extends StatelessWidget {
                         knobRadius: 0.06,
                         sizeUnit: GaugeSizeUnit.factor,
                       ),
-                      tailStyle: const TailStyle(width: 0, length: 0) // No tail
+                      tailStyle: const TailStyle() // No tail
                     ),
                   ],
                    annotations: <GaugeAnnotation>[

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dht11_apps/views/dashboard_screen.dart';
-import 'views/homepage.dart';
+import 'package:flutter_dht11_apps/views/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,18 +11,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DHT11 Dashboard',
+      title: 'DHT11 Monitor',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.amber,
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Montserrat',
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: Colors.amber,
-          secondary: Colors.black,
-        ),
+        primarySwatch: Colors.teal,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const HomePage(),
+      home: const SplashScreen(),
     );
   }
 }
