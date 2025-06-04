@@ -26,6 +26,5 @@ To develop a sensor-based monitoring system that:
 ### Flutter Mobile UI 
 ![Image](https://github.com/user-attachments/assets/c7558c77-74a7-4dcf-b387-a0656117df64)
 ![image](https://github.com/user-attachments/assets/36ce2c62-212a-4008-9974-9dbc779fbd01)
+![image](https://github.com/user-attachments/assets/d7a93311-9fdf-495d-b298-df2b78407022)
 ![Image](https://github.com/user-attachments/assets/d13f2e73-d213-4a38-9bbc-4f18821f8bdc)
-![image](https://github.com/user-attachments/assets/eddaaabf-3211-4087-a22b-d0d0f48cc1d9)
-
